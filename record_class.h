@@ -11,7 +11,7 @@ class Records{
     public:
     
     struct EmpRecord {
-        int eid;
+        int eid = -1;
         string ename;
         int age;
         double salary;
@@ -21,6 +21,10 @@ class Records{
 
     int no_values = 0; //You can use this to check if you've don't have any more tuples
     int number_of_emp_records = 0; // Tracks number of emp_records you have on the buffer
+
+    void printRecord() {
+        cout << "Eid:" << emp_record.eid << ", Ename: " << emp_record.ename << ", Age: " << emp_record.age << ", Salary " << emp_record.salary << ", no_values: " << no_values << endl;
+    }
 };
 
 // Grab a single block from the Emp.csv file and put it inside the EmpRecord structure of the Records Class

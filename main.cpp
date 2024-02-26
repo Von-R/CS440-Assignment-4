@@ -1,58 +1,104 @@
-/* This is a skeleton code for External Memory Sorting, you can make modifications as long as you meet 
-   all question requirements*/  
-
 #include <bits/stdc++.h>
 #include "record_class.h"
 
 using namespace std;
 
-//defines how many blocks are available in the Main Memory 
-#define buffer_size 22
+#define BUFFER_SIZE 22
+//Records buffers[BUFFER_SIZE];
+vector<Records> buffers(BUFFER_SIZE);
+vector<string> tempFiles;
 
-Records buffers[buffer_size]; //use this class object of size 22 as your main memory
+// Utility function to load records, sort them, and write to temp files
+void Sort_Buffer(fstream &empin) {
+    cout << "Sort buffer entered..." << endl;
+    //std::fstream empin(inputFile, std::ios::in);
+    string runFileName;
+    Records tempRecord;
+    int counter = 0;
 
-/***You can change return type and arguments as you want.***/
+    cout << "Loading records into buffer..." << endl;
+    // Load records into the buffer
+    cout << "test print1" << endl;
+    tempRecord.printRecord();
+    
+    // Loop gets records from Emp.csv and loads them into the page buffer: loads a single record
+    // Terminates when main memory is full or no more records to load
+    while (tempRecord.no_values != -1) {
+    while (counter < BUFFER_SIZE && tempRecord.no_values != -1) {
+        cout << "test print2" << endl;
+        tempRecord = Grab_Emp_Record(empin);
+        if (tempRecord.no_values == -1) {
+            cout << "No more records to load..." << endl;
+            break;
+            }
+        
+        tempRecord.printRecord();
+        buffers.at(counter++) = tempRecord;
+    }
 
-//PASS 1
-//Sorting the buffers in main_memory and storing the sorted records into a temporary file (Runs) 
-void Sort_Buffer(){
-    //Remember: You can use only [AT MOST] 22 blocks for sorting the records / tuples and create the runs
-    return;
+    // Sort the buffer
+    cout << "Sorting buffer..." << endl;
+    std::sort(buffers.begin(), buffers.end(), [](const Records& a, const Records& b) {
+        return a.emp_record.eid < b.emp_record.eid;
+    });
+
+    // Print out contents of buffer by eid
+    vector<Records>::iterator it = buffers.begin();
+    cout << "Printing sorted buffer..." << endl;
+    while (it != buffers.end() && it->no_values != -1) {
+        cout << it->emp_record.eid << " " << it->emp_record.ename << " " << it->emp_record.age << " " << it->emp_record.salary << endl;
+        ++it;
+    }
+
+    // Write sorted records to temporary files (runs)
+    runFileName = "run" + to_string(tempFiles.size()) + ".csv";
+    tempFiles.push_back(runFileName);
+    cout << "Writing sorted buffer to " << runFileName << "..." << endl;
+    std::fstream runFile(runFileName, std::ios::out);
+    it = buffers.begin();
+    while (it != buffers.end() && it->no_values != -1) {
+        runFile << it->emp_record.eid << "," << it->emp_record.ename << "," << it->emp_record.age << "," << it->emp_record.salary << endl;
+        ++it;
+    }
+    runFile.close();
+    counter = 0;
+    }
 }
 
-//PASS 2
-//Use main memory to Merge the Runs 
-//which are already sorted in 'runs' of the relation Emp.csv 
-void Merge_Runs(){
+// Utility function to merge runs and output to EmpSorted.csv
+void Merge_Runs() {
+    // Merge sorted runs using a multi-way merge algorithm
 
-    //and store the Sorted results of your Buffer using PrintSorted() 
-    return;
+    /*
+    Open streams for as many runs as possible: up to 21 in this case. There are 18 runs
+
+    Find a way to track each runs attachment to specific position in the buffer: associate each run with a buffer position
+
+    
+    */
+
+
+
+    // Output the final sorted list to EmpSorted.csv
 }
 
-void PrintSorted(){
-
-    //Store in EmpSorted.csv
-    return;
+void PrintSorted() {
+    // This could be integrated within Merge_Runs or called after merging
+    // to finalize writing to EmpSorted.csv
 }
 
 int main() {
-
-    //Open file streams to read and write
-    //Opening out the Emp.csv relation that we want to Sort
-    fstream empin;
+    fstream empin, SortOut;
+    cout << "Begin sorting..." << endl;
     empin.open("Emp.csv", ios::in);
-   
-    //Creating the EmpSorted.csv file where we will store our sorted results
-    fstream SortOut;
+    cout << "File opened..." << endl;
     SortOut.open("EmpSorted.csv", ios::out | ios::app);
+    cout << "Output file opened..." << endl;
 
-    //1. Create runs for Emp which are sorted using Sort_Buffer()
+    Sort_Buffer(empin); // Create sorted runs
+    // Merge_Runs();  // Merge runs and print sorted data
 
-
-    //2. Use Merge_Runs() to Sort the runs of Emp relations 
-
-
-    //Please delete the temporary files (runs) after you've sorted the Emp.csv
-
-    return 0;
+    // Clean-up code to delete temporary files
 }
+
+
