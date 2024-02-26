@@ -21,9 +21,20 @@ class Records{
 
     int no_values = 0; //You can use this to check if you've don't have any more tuples
     int number_of_emp_records = 0; // Tracks number of emp_records you have on the buffer
+    int fileStreamIndex = 0; // Tracks the index of the file stream you are currently using
+
+    bool operator<(const Records& other) const {
+        return emp_record.eid < other.emp_record.eid; // Example comparison based on eid
+    }
 
     void printRecord() {
         cout << "Eid:" << emp_record.eid << ", Ename: " << emp_record.ename << ", Age: " << emp_record.age << ", Salary " << emp_record.salary << ", no_values: " << no_values << endl;
+    }
+
+    Records(){};
+
+    Records(int fileStreamIndex) {
+        this->fileStreamIndex = fileStreamIndex;
     }
 };
 
@@ -48,6 +59,7 @@ Records Grab_Emp_Record(fstream &empin) {
         return emp;
     } else {
         emp.no_values = -1;
+        empin.close();
         return emp;
     }
 }
