@@ -104,7 +104,7 @@ int Sort_Buffer(fstream &empin) {
 }
 
 // Utility function to merge runs and output to EmpSorted.csv
-void Merge_Runs(int runs, int iteration = 0, vector<string> tempFiles = tempFiles) {
+void Merge_Runs(vector<string> tempFiles = tempFiles, int iteration = 0) {
     //cout << "Merge runs entered... \nRuns: " << runs << endl << "Iteration: " << iteration << endl;
     std::priority_queue<Records, std::vector<Records>, CompareRecords> mainMemory;
     Records tempRecord;
@@ -113,27 +113,37 @@ void Merge_Runs(int runs, int iteration = 0, vector<string> tempFiles = tempFile
     int loopIndex = 0;
     int newRuns = 0; 
     iteration++;
+    int incrementer = 0;
 
-    if (runs > BUFFER_SIZE - 1) {
-        loopIndex = BUFFER_SIZE - 1;
-        cout << "Runs greater than buffer size... Loop index: " << loopIndex << endl;
-    } else {
-        loopIndex = runs;
-        cout << "Runs less than buffer size... Loop index: " << loopIndex << endl;
-    }
+    vector<string> newTempFiles;
+
+    int runs = tempFiles.size();
+    
 
     while (runs > 0) {
         cout << "While runs > 0... Runs: " << runs << endl;
+        cout << "Size of tempfiles vector: " << tempFiles.size() << endl;
         // Open streams for as many runs as possible: up to 21 in this case
         vector<std::fstream> runFiles(BUFFER_SIZE - 1);
+
+        if (runs > BUFFER_SIZE - 1) {
+            loopIndex = BUFFER_SIZE - 1;
+            cout << "Runs greater than buffer size... Loop index: " << loopIndex << endl;
+        } else {
+            loopIndex = runs;
+            cout << "Runs less than buffer size... Loop index: " << loopIndex << endl;
+        }
 
         // Populate the priority queue with the first record from each run
         cout << "Populating priority queue..." << endl;
         for (int i = 0; i < loopIndex; i++) {
-            //cout << "Opening run file " << i << "..." << endl;
-            runFiles.at(i).open(tempFiles.at(i), std::ios::in);
+            cout << "Value of i: " << i << endl;
+            cout << "Opening file: " << tempFiles.at(i) << "..." << endl;
+            runFiles.at(i).open(tempFiles.at(i + incrementer), std::ios::in);
+            cout << "File opened..." << endl;
             tempRecord = Grab_Emp_Record(runFiles.at(i));
-            
+            cout << "Record grabbed..." << endl;
+
             if (tempRecord.no_values == -1) {
                 continue;
             }
@@ -144,7 +154,9 @@ void Merge_Runs(int runs, int iteration = 0, vector<string> tempFiles = tempFile
             //tempRecord.printRecord();
         }
 
-        tempFiles.clear(); // Clear temp files for next iteration
+        incrementer += loopIndex;
+
+        //tempFiles.clear(); // Clear temp files for next iteration
 
         std::priority_queue<Records, std::vector<Records>, CompareRecords> tempQueue = mainMemory; // Copy the original queue
         //cout << endl << "Printing priority queue contents..." << endl;
@@ -162,8 +174,9 @@ void Merge_Runs(int runs, int iteration = 0, vector<string> tempFiles = tempFile
         if (runs > BUFFER_SIZE - 1 || newRuns > 0 ) {
             //cout << "Writing to newRun_" << iteration << "_" << newRuns << ".csv..." << endl;
             string newFileName = "newRun_" + to_string(iteration) + "_" + to_string(newRuns) + ".csv";
+            cout << "Opening new run file " << newFileName << " to add to next iterations tempFiles." << endl;
             newRunFile.open(newFileName, std::ios::out | std::ios::trunc);
-            tempFiles.push_back(newFileName);
+            newTempFiles.push_back(newFileName);
             newRuns++;
         } 
         // Otherwise, write to EmpSorted.csv
@@ -234,7 +247,7 @@ void Merge_Runs(int runs, int iteration = 0, vector<string> tempFiles = tempFile
     if (newRuns > 0) {
             newRunFile.close();
             cout << "Recursive call to merge run. New runs: " << newRuns << " Iteration: " << iteration << endl;
-            Merge_Runs(newRuns, iteration, tempFiles);  // Recursively merge runs until all runs are merged
+            Merge_Runs(newTempFiles, iteration);  // Recursively merge runs until all runs are merged
         }
     else {
         cout << "All runs merged. Exiting merge run function..." << endl;
@@ -257,7 +270,7 @@ int main() {
     cout << "Output file opened..." << endl;
 
     int runs = Sort_Buffer(empin); // Create sorted runs
-    Merge_Runs(runs);  // Merge runs and print sorted data
+    Merge_Runs(tempFiles);  // Merge runs and print sorted data
 
     // Clean-up code to delete temporary files
 }
